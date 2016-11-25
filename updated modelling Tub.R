@@ -68,10 +68,11 @@ colnames(comp.model) <- c("AIC(x)", "AIC(y)", "diff", "relative.Likelihood")
 for (i in 1:21){
   comp.model[i,]<-relLik(mlist[[i]], mlist2[[i]])
 }
-##seems that linear responses are better than quadratic
+##seems that linear responses are better than quadratic. So stick with the linear terms. Now check how bad is to estimate all parameters to be competitive or null but no facilitation. 
 
 ##Constrain the model to be negative the interaction coefficients (only competition)
-#source("optimwrap.R") use in case "optimx does not work
+source("optimwrap.R")
+
 mlist3 <- list()
 mlist4 <- list()
 for(i in 1:21){
@@ -81,7 +82,7 @@ for(i in 1:21){
                      
   #Quadratic effect of LUI on competition
   mlist4[[i]] <- lmer(as.formula(paste(yy[i], "~ LUI + LUI*(", paste(top20.short, collapse="+"),"+Rest)","+(0+Yeart|Plot)+(1|Plot)+(1|Year_change)")), data= pchange.all2, 
-                      control = lmerControl(optimizer = "optimx", calc.derivs = FALSE, optCtrl = list(method="L-BFGS-B", lower= rep(-0.1, times=43))))
+                      control = lmerControl(optimizer = "optimwrap", calc.derivs = FALSE, optCtrl = list(method="L-BFGS-B")))
 }
 #Model selection by AIC to check which fit best 
 comp.model2 <- matrix(NA, nrow = 21, ncol = 4)
