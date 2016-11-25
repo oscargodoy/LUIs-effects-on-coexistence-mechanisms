@@ -4,9 +4,10 @@ optimwrap <- function(fn,par,lower,upper,control=list(),
   method <- control$method
   control$method <- NULL
   ## "L-BFGS-B" requires finite upper and lower values, set the lower values to competition
-  if (method=="L-BFGS-B") 
-  par <- c(1, rep())
-  upper <- c(rep(-0.000001, times=43))
+  if (method=="L-BFGS-B")
+  par <- fixef(mlist[[i]]) # use starting values from previous models to avoid overfitting
+  upper <- c(10, rep(-0.0000000001, times=43))
+  control=list(maxit=1000000)
   res <- optim(par=par, fn=fn, lower=lower,upper=upper,
                control=control,method=method,...)
   with(res, list(par = par,

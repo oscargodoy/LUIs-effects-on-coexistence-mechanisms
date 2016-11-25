@@ -71,22 +71,24 @@ for (i in 1:21){
 ##seems that linear responses are better than quadratic. So stick with the linear terms. Now check how bad is to estimate all parameters to be competitive or null but no facilitation. 
 
 ##Constrain the model to be negative the interaction coefficients (only competition)
-source("optimwrap.R")
-
+#source("optimwrap.R") in case you want to use lmer to set a constrained box. I could not make it work, the models did not converge. But if still insisting try the following
+#mlist4[[i]] <- lmer(as.formula(paste(yy[i], "~ LUI + LUI*(", paste(top20.short, collapse="+"),"+Rest)","+(0+Yeart|Plot)+(1|Plot)+(1|Year_change)")), data= pchange.all2, 
+                    #control = lmerControl(optimizer = "optimwrap", calc.derivs = TRUE, optCtrl = list(method="L-BFGS-B")))  
+  
 mlist3 <- list()
 mlist4 <- list()
-for(i in 1:21){
-  
-  #linear effect of LUI on competition
-  mlist3[[i]] <- lmer(as.formula(paste(yy[i], "~ LUI + LUI*(", paste(top20.short, collapse="+"),"+Rest)","+(0+Yeart|Plot)+(1|Plot)+(1|Year_change)")), data= pchange.all2) 
-                     
-  #Quadratic effect of LUI on competition
-  mlist4[[i]] <- lmer(as.formula(paste(yy[i], "~ LUI + LUI*(", paste(top20.short, collapse="+"),"+Rest)","+(0+Yeart|Plot)+(1|Plot)+(1|Year_change)")), data= pchange.all2, 
-                      control = lmerControl(optimizer = "optimwrap", calc.derivs = FALSE, optCtrl = list(method="L-BFGS-B")))
-}
+  for(i in 1:21){
+    
+    #linear effect of LUI on competition, same results using lmer or glmer with gaussian function. NO worries with the warnings
+    mlist3[[i]] <- glmer(as.formula(paste(yy[i], "~ LUI + LUI*(", paste(top20.short, collapse="+"),"+Rest)","+(0+Yeart|Plot)+(1|Plot)+(1|Year_change)")), data= pchange.all2, family=gaussian()) 
+                       
+    #Quadratic effect of LUI on competition
+    mlist4[[i]] <- lmer(as.formula(paste(yy[i], "~ LUI + LUI*(", paste(top20.short, collapse="+"),"+Rest)","+(0+Yeart|Plot)+(1|Plot)+(1|Year_change)")), data= pchange.all2, 
+                        control = lmerControl(optimizer = "optimwrap", calc.derivs = TRUE, optCtrl = list(method="L-BFGS-B")))
+  }
 #Model selection by AIC to check which fit best 
 comp.model2 <- matrix(NA, nrow = 21, ncol = 4)
-colnames(comp.model) <- c("AIC(x)", "AIC(y)", "diff", "relative.Likelihood")
+colnames(comp.model2) <- c("AIC(x)", "AIC(y)", "diff", "relative.Likelihood")
 for (i in 1:21){
   comp.model2[i,]<-relLik(mlist3[[i]], mlist4[[i]])
 }
