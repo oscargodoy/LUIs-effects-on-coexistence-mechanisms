@@ -27,7 +27,7 @@ Rest <- apply(plant.only[, -match(names(top20.aeg), names(plant.only))], 1, sum,
 plants3 <- cbind(plants2.aeg, Rest)
 names(plants3)[1:20] <- top20.aeg.short
 #Transform the abundance data. Divide by 100 to make it a proportion and transform with logit
-plants3 <- logit(plants3/100)
+plants3 <- logit(plants3/100) # we need to divided by the sum to reach a max of 100 across plots
 #Summarize all data
 region.aeg.final <- cbind(region.aeg[c(1:4)], plants3)
 #Do the same with the LUI
@@ -74,13 +74,35 @@ lui.seg <- lui.only[grep("SEG",lui.only$Plot),]
 
 
 #hold the final objects to start modeling 
-rm(list= ls()[!(ls() %in% c('region.aeg.final', 'lui.aeg', 'region.heg.final', 'lui.heg',
-                            'region.seg.final', 'lui.seg'))])
+rm(list= ls()[!(ls() %in% c('region.aeg.final', 'lui.aeg', 'top20.aeg.short', 'region.heg.final', 'lui.heg',
+                            'top20.heg.short', 'region.seg.final', 'lui.seg', 'top20.seg.short'))])
 
 
-#### Example with gls from 
-mdl.ac <- gls(Alo_pra ~ Year, data=region.heg.final, 
-              correlation = corAR1(form = ~ Year | EP_PlotID),na.action=na.omit)
+## Create the matrices of year t+1 as a function of year t. 
+
+pyear <- split(region.aeg.final, region.aeg.final$Year) # A list to separate between years.
+
+pchange <- list()
+
+for(i in 1:(length(pyear)-1)){
+  
+  xx <- pyear[[i+1]]
+  
+  names(xx) <- paste(names(xx), "t_1",sep="")
+  
+  xx2 <- cbind("LUI" = lui.aeg[,i], xx)
+  
+  pchange[[i]] <- cbind(xx2, pyear[[i]])
+}
+
+
+
+
+#### Example with lme from package lmer 
+mdl.ac <- lme(Alo_pra ~ Poa_tri+Tri_fla+Tri_rep+Fes_rub+Dac_glo+Bro_ere+Ran_acr+Tri_pra+Tar_sp+Lol_per+Gal_mol+Hel_pub+Poa_pra+Her_sph+Arr_ela+Ant_syl+Fes_pra+Pla_lan+Ant_odo+Rest, random = ~1 | EP_PlotID, data=region.aeg.final, 
+              correlation = corAR1(form = ~ Year), na.action=na.omit)
+
+
 summary(mdl.ac)
 plot(fitted(mdl.ac),residuals(mdl.ac))
 abline(h=0,lty=3)

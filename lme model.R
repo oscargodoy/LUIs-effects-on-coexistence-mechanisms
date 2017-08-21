@@ -29,9 +29,9 @@ pchange <- list()
 
 for(i in 1:(length(pyear)-1)){
   
-  xx <- pyear[[i+1]]-pyear[[i]]
+  xx <- pyear[[i+1]]
   
-  names(xx) <- paste(names(xx), "_delta",sep="")
+  names(xx) <- paste(names(xx), "_t1",sep="")
   
   xx2 <- cbind("LUI" = lui.only2[,i], xx)
   
@@ -40,12 +40,12 @@ for(i in 1:(length(pyear)-1)){
 
 pchange.all <- do.call("rbind", pchange)
 
-Year_change <- paste(2008:2015, 2009:2016, sep="to")
+Year_t1 <- 2009:2016
 
-pchange.all2 <- data.frame("Plot" = rep(unique(plants$Plot), 8), "Year_change" = rep(Year_change, each =150), "Yeart" = rep(1:8, each = 150), pchange.all) 
+pchange.all2 <- data.frame("Plot" = rep(unique(plants$Plot), 8), "Year_t1" = rep(Year_t1, each =150), "Year_t" = rep(2008:2015, each = 150), pchange.all) 
 
-yy <- names(pchange.all2)[grep("delta", names(pchange.all2))]
-yy2 <- gsub("_delta", "", yy)
+yy <- names(pchange.all2)[grep("t1", names(pchange.all2))]
+yy2 <- gsub("_t1", "", yy)
 
 ### fit the model for each of the 20 species + the rest
 
