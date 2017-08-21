@@ -9,8 +9,7 @@ library(car)
 plants <- read.csv("data/BE.plants08.16.csv", header =T)
 lui <- read.csv("data/LUI06_15.csv", header =T)
 
-lui.only <- lui[, grep("LUI", names(lui))]
-lui.only2 <- lui.only[, -c(1:2)] ## remove years 2006 and 2007
+lui.only <- lui[-c(2:23)]## remove 2006 and 2007
 
 plant.only <- plants[-c(1:5)]
 
@@ -31,6 +30,8 @@ names(plants3)[1:20] <- top20.aeg.short
 plants3 <- logit(plants3/100)
 #Summarize all data
 region.aeg.final <- cbind(region.aeg[c(1:4)], plants3)
+#Do the same with the LUI
+lui.aeg <- lui.only[grep("AEG",lui.only$Plot),]
 
 
 #Region 2 (HEG)
@@ -48,6 +49,8 @@ names(plants3)[1:20] <- top20.heg.short
 plants3 <- logit(plants3/100)
 #Summarize all data
 region.heg.final <- cbind(region.heg[c(1:4)], plants3)
+#Do the same with the LUI
+lui.heg <- lui.only[grep("HEG",lui.only$Plot),]
 
 
 
@@ -66,14 +69,23 @@ names(plants3)[1:20] <- top20.seg.short
 plants3 <- logit(plants3/100)
 #Summarize all data
 region.seg.final <- cbind(region.seg[c(1:4)], plants3)
+#Do the same with the LUI
+lui.seg <- lui.only[grep("SEG",lui.only$Plot),]
+
+
+#hold the final objects to start modeling 
+rm(list= ls()[!(ls() %in% c('region.aeg.final', 'lui.aeg', 'region.heg.final', 'lui.heg',
+                            'region.seg.final', 'lui.seg'))])
+
 
 ####
-mdl.ac <- gls(Alo_pra ~Year + EP_PlotID, data=region.heg.final, 
+mdl.ac <- gls(Alo_pra ~ Year, data=region.heg.final, 
               correlation = corAR1(form = ~ Year | EP_PlotID),na.action=na.omit)
-
-
-
-
+summary(mdl.ac)
+plot(fitted(mdl.ac),residuals(mdl.ac))
+abline(h=0,lty=3)
+qqnorm(mdl.ac)
+acf(residuals(mdl.ac,type="p"))
 
 
 

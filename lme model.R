@@ -23,7 +23,7 @@ Rest <- apply(plant.only[, -match(names(top20), names(plant.only))], 1, sum,na.r
 plants3 <- cbind(plants2, Rest)
 names(plants3)[1:20] <- top20.short
 
-pyear <- split(plants3, plants$Year)
+pyear <- split(plants3, plants$Year) # A list to separate between years.
 
 pchange <- list()
 
