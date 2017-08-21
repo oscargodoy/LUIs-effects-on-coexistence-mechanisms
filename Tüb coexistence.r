@@ -51,7 +51,7 @@ mlist <- list()
 
 for(i in 1:21){
 
-mlist[[i]] <- lmer(as.formula(paste(yy[i], "~ LUI + LUI*(", paste(top20.short, collapse="+"),"+Rest)","+(0+Yeart|Plot)+(1|Plot)+(1|Year_change)")), data= pchange.all2)
+mlist[[i]] <- lmer(as.formula(paste(yy[i], "~ (Site + LUI)*(", paste(top20.short, collapse="+"),"+Rest)","+(0+Yeart|Plot)+(1|Plot)+(1|Year_change)")), data= pchange.all2)
 
 }
 
