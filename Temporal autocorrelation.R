@@ -78,7 +78,7 @@ rm(list= ls()[!(ls() %in% c('region.aeg.final', 'lui.aeg', 'region.heg.final', '
                             'region.seg.final', 'lui.seg'))])
 
 
-####
+#### Example with gls from 
 mdl.ac <- gls(Alo_pra ~ Year, data=region.heg.final, 
               correlation = corAR1(form = ~ Year | EP_PlotID),na.action=na.omit)
 summary(mdl.ac)
