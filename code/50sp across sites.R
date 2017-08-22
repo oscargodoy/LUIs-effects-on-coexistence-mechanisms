@@ -114,6 +114,6 @@ colnames(intrinsic.site.lui) <- c("Intrinsic", "Site", "LUI")
 write.csv(inter.mat, "results/interaction_matrix_50.csv")
 write.csv(lui.mat, "results/lui_matrix_50.csv")
 write.csv(site.mat, "results/site_matrix_50.csv")
-write.csv(site.mat, "results/intrinsic_site_lui_50.csv")
+write.csv(intrinsic.site.lui, "results/intrinsic_site_lui_50.csv")
 
 

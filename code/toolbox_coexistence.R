@@ -12,7 +12,7 @@ require(mvtnorm)
 #structural niche difference (output on a log scale)
 Omega <- function(alpha){
   n <- nrow(alpha)
-  Sigma <-solve(t(alpha) %*% alpha)
+  Sigma <-solve(t(alpha) %*% alpha, tol = 1e-40)
   d <- pmvnorm(lower = rep(0,n), upper = rep(Inf,n), mean = rep(0,n), sigma = Sigma)
   out <- log10(d[1]) + n * log10(2)
   return(out) 
