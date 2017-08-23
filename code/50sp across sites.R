@@ -61,6 +61,28 @@ top50.short <- c("Poa_tri", "Poa_pra", "Alo_pra", "Dac_glo", "Tri_rep", "Tar_off
                  "Thy_pul", "Lol_mul", "Cir_arv", "Lot_cor", "Ran_bul", "Tri_dub", "Med_lup", "Leo_his",
                  "Car_car", "Vic_sep", "Pru_sp")
 
+## calculate response to LUI of each species
+source("code\\lui.niche.R")
+lui.mean <- read.table("data\\LUI.08.15.mean.txt", header =T)
+
+
+plants4 <- aggregate(plants2, list(plants$Useful_EP_PlotID), mean,na.rm=T)
+names(plants4)[1] <- "Plot"
+plants5 <- melt(plants4)
+plants6 <- merge(plants5, lui.mean[,c(1,5)], by = "Plot", all.x =T)
+names(plants6)[2:3] <- c("Species", "Abundance")
+
+ln <- lui.niche(Data = plants6, plot.col = "Plot", gradient.col = "LUI", abundance.col = "Abundance", runs = 1000)
+
+fates <- ln[[3]][["fate"]][,2]
+ses <- ln[[3]][["ses"]][,1]
+
+lui.resp <- data.frame("Species" = unique(plants6$Species), fates, ses)
+lui.resp <- lui.resp[match(names(top50), lui.resp$Species),]
+
+
+### fit the models
+
 mlist <- list()
 for(i in 1:50){
   mlist[[i]] <- lmer(as.formula(paste(yy[i], "~ (Site+LUI)*(", paste(top50.short, collapse="+"),"+Rest)","+(0+Year_number|Plot)+(1|Plot)+(1|Year_t)")), 
