@@ -14,46 +14,56 @@ alpha <- as.matrix(read.table("results/interaction_matrix_50.csv", header=T, sep
 intrinsic <- as.matrix(read.table("results/intrinsic.csv", header=T, sep=",", row.names=1))
 
 #calculate all possible combinations of three and four species. 
-alpha <- alpha*-1
+alpha <- alpha*-1 # change the sign as required in this framework positive interactions mean competition.
+# Important! Serguei Saavedra confirmed that the framework only works for this species combinations in which intraspecific effects are all of the same sign. 
 
 #All combination of three species
 combos3 <- t(combn(rownames(alpha),3))
-nd_fd3 <- matrix(nrow=dim(combos3)[1], ncol=2)
+nd_fd3 <- matrix(nrow=dim(combos3)[1], ncol=6)
 row.names(nd_fd3) <- apply(combos3,1,paste,collapse=".") 
-colnames(nd_fd3) <- c("omega", "theta") 
+colnames(nd_fd3) <- c("omega", "theta", "feasibility","coexisting pairs1","coexisting pairs2","coexisting pairs3") 
 
 # It serves to check other properties of the coexisting species. 
-#"centroid", "feasibility_some", "feasibility_all")
+#"centroid", "feasibility_pairs")
 
-#All combination of four species
-combos4 <- t(combn(rownames(alpha),4))
-nd_fd4 <- matrix(nrow=dim(combos4)[1], ncol=2)
-row.names(nd_fd4) <- apply(combos4,1,paste,collapse=".") 
-colnames(nd_fd4) <- c("omega", "theta") 
-
-# It serves to check other properties of the coexisting species. 
-#"centroid", "feasibility_some", "feasibility_all")
-#"centroid", "feasibility_some", "feasibility_all")
-
-
-for(i in 1:dim(combos3)[1]){
+#this loop can not calculate outcomes for two combinations (number 654 and 807)
+for(i in 808:dim(combos3)[1]){
   alpha2 <- alpha[combos3[i,], combos3[i,]]
   nd_fd3[i,1] <- Omega(alpha2)
   intrinsic2 <- intrinsic[combos3[i,],]
   nd_fd3[i,2] <- theta(alpha2,intrinsic2)
- # nd_fd3[i,2] <- r_centroid(alpha2)
-  #nd_fd3[i,4] <- test_feasibility(alpha2,intrinsic2)
-  #nd_fd3[i,5] <- test_feasibility_pairs(alpha2,intrinsic2)
+  nd_fd3[i,3] <- test_feasibility(alpha2,intrinsic2)
+  x <- test_feasibility_pairs(alpha2,intrinsic2)
+  nd_fd3[i,4:6] <- x$feasibility
+  #nd_fd3[i,2] <- r_centroid(alpha2)
 }
 
-# Replace negative niche differences with niche overlap=0
-nd_fd3[which(nd_fd3<0)]=0
+#Remove NA cases
+nd_fd3 <- as.data.frame(nd_fd3[complete.cases(nd_fd3), ])
 
-#Remove those cases with no niche differences
-row_sub = apply(nd_fd3, 1, function(row) all(row !=0 ))
-nd_fd3<- nd_fd3[row_sub,]
-nd_fd3<-as.data.frame(nd_fd3)
+#Remove -Inf Omega values
+nd_fd3 <- subset(nd_fd3, omega > -Inf)
 hist(nd_fd3$omega)
+summary(nd_fd3$omega)
+
+# Replace negative niche differences with niche overlap=0
+nd_fd3.2 <- nd_fd3
+nd_fd3.2<-within(nd_fd3.2, omega[omega<0] <- 0)
+hist(nd_fd3.2$omega)
+
+#Separate data.frame between the coexisting and the non-coexisting triplets
+coex_triplets <- subset(nd_fd3.2, feasibility ==1)
+non_coex_triplets <- subset(nd_fd3.2, feasibility ==0)
+
+#This is to remove cases with no niche differences
+#row_sub = apply(nd_fd3.2, 1, function(row) all(row !=0 ))
+#nd_fd3.2<- nd_fd3.2[row_sub,]
+
+par(mfrow=c(1,2))
+hist(nd_fd3.2$omega) # these are the niche differences
+hist(nd_fd3.2$theta) # these are the fitness differences
+
+
 
 for(i in 2378:dim(combos4)[1]){
   alpha2 <- alpha[combos4[i,], combos4[i,]]
@@ -66,8 +76,15 @@ for(i in 2378:dim(combos4)[1]){
 }
 
  
+## This is only code to be removed if not used. 
+#All combination of four species
+combos4 <- t(combn(rownames(alpha),4))
+nd_fd4 <- matrix(nrow=dim(combos4)[1], ncol=3)
+row.names(nd_fd4) <- apply(combos4,1,paste,collapse=".") 
+colnames(nd_fd4) <- c("omega", "theta", "feasibility") 
 
-
+# It serves to check other properties of the coexisting species. 
+#"centroid", "feasibility_pairs")
 #structural niche difference (Omega)
 Omega(alpha)
 
