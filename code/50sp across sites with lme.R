@@ -4,6 +4,7 @@ library(reshape2)
 library(lme4)
 library(nlme)
 library(car)
+library(boot)
 
 plants <- read.csv("data/BE.plants08.16.csv", header =T)
 lui <- read.csv("data/LUI06_15.csv", header =T)
@@ -48,8 +49,7 @@ pchange.all2 <- data.frame("Plot" = rep(unique(plants$Plot), 8),"Site" = strtrim
 yy <- names(pchange.all2)[grep("t1", names(pchange.all2))]
 yy2 <- gsub("_t1", "", yy)
 
-lmeCtlList <-lmeControl(maxIter=2,  msMaxIter=3, tolerance=1e-35, niter=4,  
-                        msTol=1e-5, nlmStepMax=5,msVerbose=TRUE  ,returnObject=TRUE ) 
+lmeCtlList <-lmeControl(tolerance = 1e-35, opt ="optim", optimMethod = "L-BFGS-B") 
 
 x <- lme(Poa_pra_t1 ~ Site + LUI*(Poa_tri+Poa_pra+Alo_pra+Dac_glo+Tri_rep+Tar_off+Lol_per+Arr_ela+Fes_rub+Fes_pra+Tri_fla+
       Ely_rep+Tri_pra+Bro_ere+Ran_rep+Bro_hor+Ran_acr+Pla_lan+Ach_mil+Gal_mol+Her_sph+Ant_syl+Hol_lan+Hel_pub+Ant_odo+
