@@ -53,7 +53,7 @@ str(lCtr <- lmeControl(maxIter = 500, msMaxIter = 500, tolerance = 1e-6, niterEM
 
 ##running al the models
 mlist <- list()
-for(i in 1:2){
+for(i in 1:51){
   mlist[[i]] <- lme(as.formula(paste(yy[i], "~ Site + LUI*(", paste(top50.short, collapse="+"),"+Rest)")), data= pchange.all2,
                     random=~1|Plot, control=lCtr, correlation=corAR1(form=~Yeart), method='REML', na.action=na.omit)
 }
