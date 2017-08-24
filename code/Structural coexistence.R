@@ -11,13 +11,15 @@ rm(list=ls())
 source('code/toolbox_coexistence.R')
 source('code/toolbox_figure.R')
 
+library(boot)
+
 #3-species interaction matrix of figure 5 and 6
-alpha <- as.matrix(read.table("results/interaction_matrix_50.csv", header=T, sep=",", row.names=1))
-intrinsic <- as.matrix(read.table("results/intrinsic.csv", header=T, sep=",", row.names=1))
+alpha <- as.matrix(read.table("results/interaction_matrix_lme_50.csv", header=T, sep=",", row.names=1))
+intrinsic <- as.matrix(read.table("results/intrinsic_site_lui_lme_50.csv", header=T, sep=",", row.names=1))
 
 #calculate all possible combinations of three species. 
 alpha <- alpha*-1 # change the sign as required in this framework positive interactions mean competition.
-# Important! Serguei Saavedra confirmed that the framework only works for this species combinations in which intraspecific effects are all of the same sign. 
+# Important! Serguei Saavedra confirmed that the framework only works with intraspecific positive values meaning all species experience intraspecific competition. 
 
 #All combination of three species
 combos3 <- t(combn(rownames(alpha),3))
