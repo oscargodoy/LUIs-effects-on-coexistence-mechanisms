@@ -1,0 +1,42 @@
+---
+title: "results to comment"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Results of proportions
+
+Of the total of 19600 triplet combinations, we could calculate structural niche and fitness differences for 18674. 
+
+The number of coexisting triplets is 2562 (proportion of 0.1371961) (object "coex_triplets")
+
+The number of non-coexisting triplets is 16112 (proportion of 0.8628039) (object "non_coex_triplets")
+
+Of those coexisting triplets 
+
+The number of triplets that coexist when also all three species pairs coexist is 260 (proportion of 260/2562=0.1014832) (object "all_coex_pairs") 
+
+The number of triplets that coexist when at least some pairs but not all coexist is 2044 (diffuse competition) (proprotion of 2044/2562=0.7978142) (object "diffuse")
+
+The number of triplets that coexist when no pair coexist is (intransitivity) 258
+(proportion of 260/2562=0.1007026) (object "intransitivity") 
+
+
+
+
+```{r cars}
+summary(cars)
+```
+
+## Including Plots
+
+You can also embed plots, for example:
+
+```{r pressure, echo=FALSE}
+plot(pressure)
+```
+
+Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.
