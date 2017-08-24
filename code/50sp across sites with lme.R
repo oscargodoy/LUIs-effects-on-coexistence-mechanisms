@@ -29,7 +29,7 @@ plants2 <- plants[,match(names(top50), names(plants))]
 Rest <- apply(plant.only[, -match(names(top50), names(plant.only))], 1, sum,na.rm=T)
 
 plants3 <- cbind(plants2, Rest)
-plants3 <- logit(plants3/apply(plants3,1,sum)) 
+plants3 <- plants3/apply(plants3,1,sum)
 names(plants3)[1:51] <- top50.short
 
 pyear <- split(plants3, plants$Year)
@@ -37,7 +37,10 @@ pchange <- list()
 
 
 for(i in 1:(length(pyear)-1)){
-  xx <- pyear[[i+1]]-pyear[[i]]
+  xx <- pyear[[i+1]]-pyear[[i]] #absolute change
+  #logit transformation logit(pyear[[i+1]]) - logit(pyear[[i]])
+  # log response ration log(pyear[[i+1]]-pyear[[i]]))
+  # relative change cover(pyear[[i+1]] - pyear[[i]]) / (max(pyear[[i+1]],pyear[[i]]))
   names(xx) <- paste(names(xx), "_delta",sep="")
   xx2 <- cbind("LUI" = lui.only2[,i], xx)
   pchange[[i]] <- cbind(xx2, pyear[[i]])
@@ -48,6 +51,8 @@ Year_change <- paste(2008:2015, 2009:2016, sep="to")
 pchange.all2 <- data.frame("Plot" = rep(unique(plants$Plot), 8), "Site" = strtrim(unique(plants$Plot), 1), "Year_change" = rep(Year_change, each =150), "Yeart" = rep(1:8, each = 150), pchange.all) 
 yy <- names(pchange.all2)[grep("delta", names(pchange.all2))]
 yy2 <- gsub("_delta", "", yy)
+
+plot(pchange.all2$Poa_tri, pchange.all2$Poa_tri_delta)
 
 str(lCtr <- lmeControl(maxIter = 500, msMaxIter = 500, tolerance = 1e-6, niterEM = 250, msMaxEval = 200))
 
