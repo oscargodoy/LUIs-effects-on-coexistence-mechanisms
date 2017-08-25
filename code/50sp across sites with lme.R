@@ -188,9 +188,9 @@ write.csv(inter.mat, "results/interaction_matrix_lme_average_50.csv")
 write.csv(lui.mat, "results/lui_matrix_lme_average_50.csv")
 write.csv(intrinsic.site.lui, "results/intrinsic_site_lui_average_lme_50.csv")
 
-##To plot 
+##To plot many different option check
 ## http://myweb.uiowa.edu/pbreheny/publications/visreg.pdf
-visreg(mlist[[1]], "Cer_hol", by="LUI", overlay=T, partial=T, type="contrast")
+example <- visreg(mlist[[1]], "Cer_hol", by="LUI", overlay=T, partial=T, type="contrast")
 
 #We also calculate errors ###This needs to be asked to ERIC. Basically is find a way to propagate error
 
