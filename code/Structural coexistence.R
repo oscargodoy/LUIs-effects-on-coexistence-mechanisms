@@ -2,29 +2,73 @@
 
 #R-code of "A structural approach for understanding multispecies coexistence" by:
 #Serguei Saavedra, Rudolf P. Rohr, Jordi Bascompte, Oscar Godoy, Nathan J.B. Kraft,
-#and Jonathan M. Levine
-#published in: Ecological Monographs
-
-#No LUI with 3sp----
+#and Jonathan M. Levine. Published in: Ecological Monographs
 
 rm(list=ls())
 source('code/toolbox_coexistence.R')
 source('code/toolbox_figure.R')
 
+#loading average values
+alpha <- as.matrix(read.table("results/interaction_matrix_lme_average_50.csv", header=T, sep=",", row.names=1))
+intrinsic <- as.matrix(read.table("results/intrinsic_site_lui_average_lme_50.csv", header=T, sep=",", row.names=1))
 
-#3-species interaction matrix of figure 5 and 6
-alpha <- as.matrix(read.table("results/interaction_matrix_lme_50.csv", header=T, sep=",", row.names=1))
-intrinsic <- as.matrix(read.table("results/intrinsic_site_lui_lme_50.csv", header=T, sep=",", row.names=1))
 
-#calculate all possible combinations of three species. 
-alpha <- alpha*-1 # change the sign as required in this framework positive interactions mean competition.
-# Important! Serguei Saavedra confirmed that the framework only works with intraspecific positive values meaning all species experience intraspecific competition. 
+#loading std.error values
+alpha.error <- as.matrix(read.table("results/interaction_matrix_lme_std_error_50.csv", header=T, sep=",", row.names=1))
 
-#We are going to leave 
+# Important! Serguei Saavedra and Rudolf Rohr confirmed that the framework only works with intraspecific positive values meaning all species experience some sort of intraspecific competition.
+#Therefore lets make all calculations with high and low LUI and then multiply by -1. 
 
+diag(alpha)>0 
+# Result: Three sps in the alpha matrix needs to be removed at average values because they have intra facilitation: Urt_dio, Car_car, Ely_rep.
+
+alpha_95_low <- alpha * (-1.96*alpha.error)
+diag(alpha_95_low)>0 
+# Result: Same as before, three sps in the alpha matrix needs to be removed Urt_dio, Car_car, Ely_rep.
+
+alpha_95_high <- alpha * (1.96*alpha.error)  
+diag(alpha_95_high)>0
+#This is the opposite these three species have now negative values. 
+# as CI 95% can not be evaluated because of positive values yet they are symmetrical we will evaluate only at 95% of one of the sides.
+
+#Final set of 48 sps
+names<-c("Ely_rep", "Car_car", "Urt_dio")
+alpha<- alpha[-which(rownames(alpha) %in% names),-which(colnames(alpha) %in% names)]
+alpha_95_high<- alpha_95_high[-which(rownames(alpha_95_high) %in% names),-which(colnames(alpha_95_high) %in% names)]
+rm(alpha_95_low)
+
+#How the intras in the matrix are modified when include low and high LUI
+#Load the data without the three species removed
+lui <- as.matrix(read.table("results/lui_matrix_lme_average_50.csv", header=T, sep=",", row.names=1))
+lui<- lui[-which(rownames(lui) %in% names),-which(colnames(lui) %in% names)]
+lui.error <- as.matrix(read.table("results/lui_matrix_lme_std_error_50.csv", header=T, sep=",", row.names=1))
+lui.error<- lui.error[-which(rownames(lui.error) %in% names),-which(colnames(lui.error) %in% names)]
+
+#evaluate the effect of LUI
+#low LUI set at 0.5
+  #Average and error
+alpha_low_lui <- alpha - (lui*0.5)
+alpha_low_lui_95_high <- alpha_95_high - (lui.error*0.5*1.96)
+
+#High LUI set at 3.5
+#Average and error
+alpha_high_lui<- alpha - (lui*3.5)
+alpha_low_lui_95_high <- alpha_95_high - (lui.error*3.5*1.96)
+
+
+#Check that with low and high LUI we are ok of all values in the diagonal being competition (negative values so far), remember to change to positive before performing analyses
+diag(alpha_low_lui)<0
+diag(alpha_high_lui)<0 
+
+
+#calculate all possible combinations of three and four species.
+combos3 <- t(combn(rownames(alpha),3))
+combos4 <- t(combn(rownames(alpha),4))
+
+#No LUI with 3sp----
 
 #All combination of three species
-combos3 <- t(combn(rownames(alpha),3))
+
 nd_fd3 <- matrix(nrow=dim(combos3)[1], ncol=6)
 row.names(nd_fd3) <- apply(combos3,1,paste,collapse=".") 
 colnames(nd_fd3) <- c("omega", "theta", "feasibility","coexisting pairs1:2","coexisting pairs1:3","coexisting pairs2:3") 

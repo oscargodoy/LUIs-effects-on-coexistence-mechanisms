@@ -140,6 +140,13 @@ for (i in 1:51){
 ##According to AIC raw differences in proportion of cover are the best model supported across all species.
 ##Lets save these coefficients
 
+h<- lme(Poa_tri_delta ~ Site + Poa_tri,data= pchange.all2,random=~1|Plot, control=lCtr, correlation=corAR1(form=~Yeart), method='REML', na.action=na.omit)
+
+predictors <- expand.grid(Site= c("A","H","S"),
+                          Sp= "Poa_tri")
+predict(h, newdata=predictors, levels=0)
+
+
 coef.list <- lapply(mlist, function(x)summary(x)$coef$fixed)
 
 #the miscelaneous species "REST" is not saved
@@ -181,8 +188,11 @@ write.csv(inter.mat, "results/interaction_matrix_lme_average_50.csv")
 write.csv(lui.mat, "results/lui_matrix_lme_average_50.csv")
 write.csv(intrinsic.site.lui, "results/intrinsic_site_lui_average_lme_50.csv")
 
+##To plot 
+## http://myweb.uiowa.edu/pbreheny/publications/visreg.pdf
+visreg(mlist[[1]], "Cer_hol", by="LUI", overlay=T, partial=T, type="contrast")
 
-#We also calculate errors
+#We also calculate errors ###This needs to be asked to ERIC. Basically is find a way to propagate error
 
 coef.list.error <- lapply(mlist, function(x)summary(x)$tTable[,2]) #column two correspond to std error.
 
@@ -215,9 +225,7 @@ colnames(intrinsic.site.lui.error) <- c("Intrinsic", "SiteH", "SiteS", "LUI")
 write.csv(inter.mat.error, "results/interaction_matrix_lme_std_error_50.csv")
 write.csv(lui.mat.error, "results/lui_matrix_lme_std_error_50.csv")
 write.csv(intrinsic.site.lui.error, "results/intrinsic_site_lui_std_error_lme_50.csv")
-
-
-
+#From here we can calculate latter 95CI intervals multiplying by ±1.96. 
 
 ## calculate response to LUI of each species (Put as a Table)----
 source("code/lui.niche.R")
@@ -238,89 +246,4 @@ ses <- ln[[3]][["ses"]][,1]
 lui.resp <- data.frame("Species" = unique(plants6$Species), fates, ses)
 lui.resp <- lui.resp[match(names(top50), lui.resp$Species),]
 
-
-
-
-###OLD STUFF IN CASE IT IS USEFUL, if it is not at the end then delete. 
-pchange.all <- do.call("rbind", pchange)
-Year_t1 <- 2009:2016
-pchange.all2 <- data.frame("Plot" = rep(unique(plants$Plot), 8),"Site" = strtrim(unique(plants$Plot), 1), "Year_t1" = rep(Year_t1, each =150), "Year_t" = rep(2008:2015, each = 150), "Year_number" = rep(1:8, each = 150), pchange.all) # 8years, 150locations per year across site
-yy <- names(pchange.all2)[grep("t1", names(pchange.all2))]
-yy2 <- gsub("_t1", "", yy)
-pchange.all2<- pchange.all2[complete.cases(pchange.all2), ]
-##Either divide or substract to check which is better to get a stationary dynamic. 
-
-#Poa_tri----
-Poa_tri_diff <- (pchange.all2$Poa_tri_t1 - pchange.all2$Poa_tri)
-
-Poa_tri<-cbind(pchange.all2[,1:6], Poa_tri_diff, pchange.all2[,59:110])
-Poa_tri<- Poa_tri[complete.cases(Poa_tri[,7]), ]
-plot.ts(Poa_tri$Year_t1, Poa_tri$Poa_tri_diff) #check that at year 1 is stationary then in CorARA d=1
-pacf(Poa_tri$Poa_tri_diff) #higer values are at lag 4 and 5. then q is around these values 
-
-
-x2 <- lme(Poa_tri_diff ~ Site + LUI*(Poa_tri+Poa_pra+Alo_pra+Dac_glo+Tri_rep+Tar_off+Lol_per+Arr_ela+Fes_rub+Fes_pra+Tri_fla+
-    Ely_rep+Tri_pra+Bro_ere+Ran_rep+Bro_hor+Ran_acr+Pla_lan+Ach_mil+Gal_mol+Her_sph+Ant_syl+Hol_lan+Hel_pub+Ant_odo+
-    Bra_pin+Car_hir+Ver_cha+Rum_ace+Fes_ovi+Phl_pra+Pha_aru+Des_ces+Agr_sto+Cyn_cri+Cir_ole+Cer_hol+Pla_med+Cre_bie+
-      Urt_dio+Thy_pul+Lol_mul+Cir_arv+Lot_cor+Ran_bul+Tri_dub+Med_lup+Leo_his+Car_car+Vic_sep+Pru_sp+Rest), 
-    random=~1|Plot, data= Poa_tri, control=lCtr, correlation=corARMA(form=~Year_number, p=1, q=1), method='REML', na.action=na.omit)
-
-plot(Poa_tri$Poa_tri,Poa_tri$Poa_tri_diff)
-
-coef_Poa_tri<-summary(x2)$tTable
-
-#Poa_pra----
-Poa_pra_diff <- (pchange.all2$Poa_pra_t1 - pchange.all2$Poa_pra)
-
-Poa_pra<-cbind(pchange.all2[,1:6], Poa_pra_diff, pchange.all2[,59:110])
-Poa_pra<- Poa_pra[complete.cases(Poa_pra[,7]), ]
-plot.ts(Poa_pra$Year_t1, Poa_pra$Poa_pra_diff) #check that at year 1 is stationary then in CorARA d=1
-pacf(Poa_pra$Poa_pra_diff) #higer values are at lag 4 and 5. then q is around these values 
-
-str(lCtr <- lmeControl(maxIter = 500, msMaxIter = 500, tolerance = 1e-6, niterEM = 250, msMaxEval = 200))
-
-x <- lme(Poa_pra_diff ~ Site + LUI*(Poa_tri+Poa_pra+Alo_pra+Dac_glo+Tri_rep+Tar_off+Lol_per+Arr_ela+Fes_rub+Fes_pra+Tri_fla+
-                                       Ely_rep+Tri_pra+Bro_ere+Ran_rep+Bro_hor+Ran_acr+Pla_lan+Ach_mil+Gal_mol+Her_sph+Ant_syl+Hol_lan+Hel_pub+Ant_odo+
-                                       Bra_pin+Car_hir+Ver_cha+Rum_ace+Fes_ovi+Phl_pra+Pha_aru+Des_ces+Agr_sto+Cyn_cri+Cir_ole+Cer_hol+Pla_med+Cre_bie+
-                                       Urt_dio+Thy_pul+Lol_mul+Cir_arv+Lot_cor+Ran_bul+Tri_dub+Med_lup+Leo_his+Car_car+Vic_sep+Pru_sp+Rest), 
-          random=~1|Plot, data= Poa_pra, control=lCtr, correlation=corARMA(form=~Year_number, p=1, q=0), method='REML', na.action=na.omit)
-
-plot(Poa_pra$Poa_pra,Poa_pra$Poa_pra_diff)
-
-coef_Poa_pra<-summary(x2)$tTable
-
-
-#Alo_pra----
-Alo_pra_diff <- (pchange.all2$Alo_pra_t1 - pchange.all2$Alo_pra)
-
-Alo_pra<-cbind(pchange.all2[,1:6], Alo_pra_diff, pchange.all2[,59:110])
-Alo_pra<- Alo_pra[complete.cases(Alo_pra[,7]), ]
-plot.ts(Alo_pra$Year_t1, Alo_pra$Alo_pra_diff) #check that at year 1 is stationary then in CorARA d=1
-pacf(Alo_pra$Alo_pra_diff) #higer values are at lag 4 and 5. then q is around these values 
-
-str(lCtr <- lmeControl(maxIter = 500, msMaxIter = 500, tolerance = 1e-6, niterEM = 250, msMaxEval = 200))
-
-x <- lme(Alo_pra_diff ~ Site + LUI*(Poa_tri+Poa_pra+Alo_pra+Dac_glo+Tri_rep+Tar_off+Lol_per+Arr_ela+Fes_rub+Fes_pra+Tri_fla+
-                                       Ely_rep+Tri_pra+Bro_ere+Ran_rep+Bro_hor+Ran_acr+Pla_lan+Ach_mil+Gal_mol+Her_sph+Ant_syl+Hol_lan+Hel_pub+Ant_odo+
-                                       Bra_pin+Car_hir+Ver_cha+Rum_ace+Fes_ovi+Phl_pra+Pha_aru+Des_ces+Agr_sto+Cyn_cri+Cir_ole+Cer_hol+Pla_med+Cre_bie+
-                                       Urt_dio+Thy_pul+Lol_mul+Cir_arv+Lot_cor+Ran_bul+Tri_dub+Med_lup+Leo_his+Car_car+Vic_sep+Pru_sp+Rest), 
-          random=~1|Plot, data= Alo_pra, control=lCtr, correlation=corARMA(form=~Year_number, p=1, q=0), method='REML', na.action=na.omit)
-
-plot(Alo_pra$Alo_pra,Alo_pra$Alo_pra_diff)
-
-coef_Alo_pra<-summary(x2)$tTable
-
-
-
-
-
-
-xx <- profilelike.lme(formula = Poa_pra_t1 ~ Site + LUI*(Poa_pra+Poa_tri), random = ~ 1 | Plot, 
-                      correlation=corAR1(form=~Year_number), data=pchange.all2, subject = Plot,
-                      profile.theta="Poa_pra", method="ML", lo.theta=1, hi.theta=5, length=500, round=2)
-
-
-x1 <- lme(Poa_tri_t1 ~ Site + LUI*Poa_tri, random=~1|Plot, data= pchange.all2, correlation=corAR1(form=~Year_number), method='ML', na.action=na.omit)
-x2 <- lme(Poa_tri_t1 ~ Site + LUI*Poa_tri, random=~1|Plot, data= pchange.all2, correlation=corARMA(form=~Year_number, p=1, q=1), method='REML', na.action=na.omit)
-x3 <- lme(Poa_tri_t1 ~ Site + LUI*Poa_tri, random=~1|Plot, data= pchange.all2, correlation= corCAR1(0.2, form = ~Year_number), method='REML', na.action=na.omit)
 
